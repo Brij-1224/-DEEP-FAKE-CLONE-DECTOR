@@ -1,0 +1,6 @@
+{
+  "name": "VeriShield AI",
+  "description": "Real-time AI voice-clone, acoustic replay spoof, live call scam defense, and precision AI-generated vs real photo forensic detector.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
