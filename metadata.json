@@ -1,6 +1,6 @@
 {
   "name": "VeriShield AI",
-  "description": "Real-time AI voice-clone, acoustic replay spoof, live call scam defense, and precision AI-generated vs real photo forensic detector.",
-  "requestFramePermissions": ["microphone"],
+  "description": "Real-time AI voice-clone, deepfake video detector with facial border and ocular kinematics forensics, acoustic replay spoof defense, and AI photo detector.",
+  "requestFramePermissions": ["microphone", "camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

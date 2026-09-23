@@ -76,7 +76,7 @@ export const DeepForensicModal: React.FC<DeepForensicModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Acoustic Formants &bull; Vocoder Phase Dispersion &bull; Court-Admissible Forensic Analysis
+                Acoustic Formants &bull; Vocoder Phase Dispersion &bull; Forensic Analysis Report
               </p>
             </div>
           </div>
@@ -218,10 +218,10 @@ export const DeepForensicModal: React.FC<DeepForensicModalProps> = ({
 
               </div>
 
-              {/* Formal Court Evidence Certificate */}
+              {/* Formal Digital Forensic Analysis Declaration */}
               <div className="p-4 rounded-xl bg-slate-950 border border-slate-700 text-xs">
                 <div className="text-[10px] font-mono-code uppercase tracking-widest text-slate-400 mb-1">
-                  Court-Admissible Forensic Declaration (Law Enforcement Ready)
+                  Digital Forensic Analysis Declaration (ISO/IEC 27037 Principles)
                 </div>
                 <p className="text-slate-300 font-mono-code leading-relaxed">
                   {report.courtEvidenceSummary}

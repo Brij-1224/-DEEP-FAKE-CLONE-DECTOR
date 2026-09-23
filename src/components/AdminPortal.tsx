@@ -7,8 +7,27 @@ interface AdminPortalProps {
 }
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
+  const [authToken, setAuthToken] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem('vs_admin_token');
+    } catch (_) {
+      return null;
+    }
+  });
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    try {
+      return !!sessionStorage.getItem('vs_admin_token');
+    } catch (_) {
+      return false;
+    }
+  });
+  const [username, setUsername] = useState(() => {
+    try {
+      return sessionStorage.getItem('vs_admin_user') || '';
+    } catch (_) {
+      return '';
+    }
+  });
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,12 +38,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
   const [verdictFilter, setVerdictFilter] = useState('ALL');
 
   const fetchLogs = async () => {
+    if (!authToken) return;
     try {
-      const res = await fetch('/api/admin/logs');
+      const res = await fetch('/api/admin/logs', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
       if (res.ok) {
         const data = await res.json();
         setLogs(data.logs || []);
         setStats(data.stats || { total: 0, highRisk: 0, scamDetected: 0 });
+      } else if (res.status === 401 || res.status === 403) {
+        handleLogout();
       }
     } catch (err) {
       console.error('Failed to fetch admin logs:', err);
@@ -32,12 +58,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
   };
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && authToken) {
       fetchLogs();
       const interval = setInterval(fetchLogs, 5000);
       return () => clearInterval(interval);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, authToken]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,10 +78,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
       });
       const data = await res.json();
 
-      if (data.success) {
+      if (data.success && data.token) {
+        setAuthToken(data.token);
         setIsLoggedIn(true);
-        setUsername(data.user?.username || 'admin');
+        const user = data.user?.username || 'admin';
+        setUsername(user);
         setPassword('');
+        try {
+          sessionStorage.setItem('vs_admin_token', data.token);
+          sessionStorage.setItem('vs_admin_user', user);
+        } catch (_) {}
       } else {
         setLoginError(data.message || 'Invalid username or password');
       }
@@ -66,13 +98,36 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
     }
   };
 
-  const handleClearLogs = async () => {
-    if (!window.confirm('Are you sure you want to clear all incident logs?')) return;
+  const handleLogout = () => {
+    setAuthToken(null);
+    setIsLoggedIn(false);
     try {
-      await fetch('/api/admin/logs', { method: 'DELETE' });
+      sessionStorage.removeItem('vs_admin_token');
+      sessionStorage.removeItem('vs_admin_user');
+    } catch (_) {}
+  };
+
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  const handleClearLogs = async () => {
+    if (!authToken) return;
+    if (!confirmClear) {
+      setConfirmClear(true);
+      setTimeout(() => setConfirmClear(false), 4000);
+      return;
+    }
+    try {
+      await fetch('/api/admin/logs', { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
       fetchLogs();
     } catch (err) {
       console.error(err);
+    } finally {
+      setConfirmClear(false);
     }
   };
 
@@ -209,7 +264,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
                 <span>Refresh</span>
               </button>
               <button
-                onClick={() => setIsLoggedIn(false)}
+                onClick={handleLogout}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-950/60 hover:bg-red-900/60 border border-red-800/60 text-red-300 text-xs font-semibold transition-colors cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -272,10 +327,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
 
                 <button
                   onClick={handleClearLogs}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-red-950/60 hover:text-red-300 hover:border-red-800 text-slate-400 text-xs font-semibold transition-colors cursor-pointer border border-transparent"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer border ${
+                    confirmClear
+                      ? 'bg-red-950/80 text-red-300 border-red-600 animate-pulse'
+                      : 'bg-slate-800/80 hover:bg-red-950/60 hover:text-red-300 hover:border-red-800 text-slate-400 border-transparent'
+                  }`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>Clear Logs</span>
+                  <span>{confirmClear ? 'Click to Confirm' : 'Clear Logs'}</span>
                 </button>
               </div>
             </div>

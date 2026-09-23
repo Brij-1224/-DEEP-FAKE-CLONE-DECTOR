@@ -1,9 +1,9 @@
 import React from 'react';
-import { Shield, Radio, Mic, FileAudio, Users, Activity, Lock, Camera } from 'lucide-react';
+import { Shield, Radio, FileAudio, Users, Activity, Lock, Camera, Film, FileCheck } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'live' | 'upload' | 'photo' | 'speakers' | 'benchmarks' | 'admin';
-  setActiveTab: (tab: 'live' | 'upload' | 'photo' | 'speakers' | 'benchmarks' | 'admin') => void;
+  activeTab: 'live' | 'investigation' | 'upload' | 'photo' | 'video' | 'speakers' | 'benchmarks' | 'admin';
+  setActiveTab: (tab: 'live' | 'investigation' | 'upload' | 'photo' | 'video' | 'speakers' | 'benchmarks' | 'admin') => void;
   isStreaming: boolean;
   wsConnected: boolean;
 }
@@ -14,14 +14,25 @@ export const Navbar: React.FC<NavbarProps> = ({
   isStreaming,
   wsConnected
 }) => {
+  const navItems = [
+    { id: 'live', label: 'Live Call', icon: Radio, streamingBadge: true },
+    { id: 'investigation', label: 'Investigations', icon: FileCheck, isNew: true },
+    { id: 'upload', label: 'Audio Lab', icon: FileAudio },
+    { id: 'video', label: 'Deepfake Video', icon: Film },
+    { id: 'photo', label: 'AI Photo', icon: Camera },
+    { id: 'speakers', label: 'Voiceprints', icon: Users },
+    { id: 'benchmarks', label: 'Latency', icon: Activity },
+    { id: 'admin', label: 'Admin', icon: Lock }
+  ] as const;
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#0b0f19]/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-[#0b0f19]/90 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         
         {/* Brand */}
         <div 
           onClick={() => setActiveTab('live')}
-          className="flex items-center gap-3 cursor-pointer group select-none"
+          className="flex items-center gap-3 cursor-pointer group select-none shrink-0"
         >
           <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/40 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)] group-hover:border-cyan-400 transition-colors">
             <Shield className="w-5 h-5" />
@@ -35,103 +46,55 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-chakra text-lg font-bold tracking-wider text-slate-100">
-                VERISHIELD<span className="text-cyan-400">.AI</span>
+                TRUTHNET<span className="text-cyan-400">.AI</span>
               </span>
-              <span className="px-1.5 py-0.5 text-[10px] font-mono-code font-semibold rounded bg-cyan-950/60 border border-cyan-800/60 text-cyan-300">
-                SIH v2.4
+              <span className="px-1.5 py-0.2 text-[9px] font-mono-code font-bold rounded bg-cyan-950/80 border border-cyan-800/60 text-cyan-300">
+                FORENSIC
               </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">
-              Real-Time Live Call Deepfake &amp; Extortion Defense
+              AI Voice Clone, Deepfake Video &amp; Extortion Defense
             </p>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <nav className="flex items-center gap-1 sm:gap-2">
-          <button
-            onClick={() => setActiveTab('live')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-              activeTab === 'live'
-                ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-            }`}
-          >
-            <Radio className="w-4 h-4 text-cyan-400" />
-            <span>Live Call</span>
-            {isStreaming && (
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            )}
-          </button>
+        {/* Full Main Navigation Bar */}
+        <nav className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  isActive
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
+                <span>{item.label}</span>
 
-          <button
-            onClick={() => setActiveTab('upload')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-              activeTab === 'upload'
-                ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-            }`}
-          >
-            <FileAudio className="w-4 h-4" />
-            <span className="hidden sm:inline">Audio</span> Lab
-          </button>
+                {'streamingBadge' in item && item.streamingBadge && isStreaming && (
+                  <span className="flex h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
+                )}
 
-          <button
-            onClick={() => setActiveTab('photo')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-              activeTab === 'photo'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
-                : 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800/40'
-            }`}
-          >
-            <Camera className="w-4 h-4 text-cyan-400" />
-            <span>AI Photo Detector</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('speakers')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-              activeTab === 'speakers'
-                ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">Voiceprints</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('benchmarks')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-              activeTab === 'benchmarks'
-                ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-            }`}
-          >
-            <Activity className="w-4 h-4" />
-            <span className="hidden md:inline">Latency</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('admin')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-              activeTab === 'admin'
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
-                : 'text-slate-400 hover:text-purple-300 hover:bg-slate-800/40'
-            }`}
-          >
-            <Lock className="w-4 h-4 text-purple-400" />
-            <span>Admin</span>
-          </button>
+                {'isNew' in item && item.isNew && (
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-mono-code font-bold shadow-sm">
+                    NEW
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* Telemetry Indicator */}
-        <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-slate-800">
-          <div className="flex items-center gap-2 text-xs font-mono-code">
+        {/* Live Status Indicator */}
+        <div className="hidden xl:flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-mono-code text-slate-300">
             <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400'}`}></span>
-            <span className="text-slate-400">
-              {wsConnected ? 'WebSocket 16kHz Stream' : 'HTTP Polling Mode'}
-            </span>
+            <span>{wsConnected ? 'WS STREAM ACTIVE' : 'CONNECTING...'}</span>
           </div>
         </div>
 

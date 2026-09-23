@@ -2,7 +2,260 @@
  * VeriShield AI — Incident Database & Enrolled Speaker Store
  */
 
-import { AnalysisLogEntry, EnrolledSpeaker, ActiveLivenessChallenge, PhotoForensicResult } from '../src/types';
+import { AnalysisLogEntry, EnrolledSpeaker, ActiveLivenessChallenge, PhotoForensicResult, VideoForensicResult, CallSummaryData } from '../src/types';
+
+// Seeded investigation cases for SIH 2026 VoiceGuard AI demonstrations
+let callSummaries: CallSummaryData[] = [
+  {
+    caseId: 'VG-2026-001',
+    callStartTime: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
+    callEndTime: new Date(Date.now() - 1000 * 60 * 33).toISOString(),
+    callDurationSec: 120,
+    callDurationFormatted: '02:00',
+    overallVoiceStatus: 'Possible Deepfake',
+    totalAnalyzedSpeechDurationSec: 100,
+    flaggedFakeDurationSec: 72,
+    flaggedFakeDurationPercentage: 72, // 72% of analyzed speech duration flagged as fake
+    uncertainDurationSec: 12,
+    uncertainDurationPercentage: 12,
+    mostSuspiciousSegment: '00:08–00:16',
+    fakeSegmentsCount: 6,
+    realSegmentsCount: 2,
+    uncertainSegmentsCount: 1,
+    totalSegmentsCount: 9,
+    transcript: 'Main CEO bol raha hoon, urgently ₹5 lakh transfer karo hospital trust account mein. Vendor agreement suspend ho jayega immediately transfer karo.',
+    highlightedTranscriptSentences: [
+      { text: 'Main CEO bol raha hoon, ', isSuspicious: true, category: 'IDENTITY IMPERSONATION' },
+      { text: 'urgently ₹5 lakh transfer karo ', isSuspicious: true, category: 'URGENT TRANSFER' },
+      { text: 'hospital trust account mein. ', isSuspicious: false },
+      { text: 'Vendor agreement suspend ho jayega immediately transfer karo.', isSuspicious: true, category: 'PAYMENT REQUEST' }
+    ],
+    detectedFraudIntents: [
+      { category: 'IDENTITY IMPERSONATION', matchedPhrase: 'Main CEO bol raha hoon', severity: 'HIGH' },
+      { category: 'URGENT TRANSFER', matchedPhrase: 'urgently ₹5 lakh transfer karo', severity: 'HIGH' },
+      { category: 'PAYMENT REQUEST', matchedPhrase: 'immediately transfer karo', severity: 'HIGH' }
+    ],
+    overallRisk: 'HIGH',
+    warningsGenerated: [
+      {
+        id: 'warn-1',
+        timeSec: 12,
+        timeFormatted: '00:12',
+        warningType: 'POSSIBLE AI-CLONED VOICE DETECTED',
+        riskLevel: 'HIGH',
+        triggerReason: 'Consecutive fake speech segments detected with urgent CEO transfer demand',
+        detectedIntent: 'URGENT TRANSFER'
+      }
+    ],
+    averageInferenceLatencyMs: 285,
+    modelName: 'AASIST-v2 / Hybrid Anti-Spoofing',
+    modelVersion: 'v2026.1-prod',
+    caseReviewStatus: 'Under Investigation',
+    callerMetadata: {
+      callerNumber: '+91 98201 XXXXX',
+      claimedIdentity: 'CEO Vikram Mehta',
+      channel: 'VoIP SIP Gateway'
+    },
+    segments: [
+      {
+        id: 'seg-1',
+        index: 1,
+        startSec: 0,
+        endSec: 4,
+        timeRangeFormatted: '00:00–00:04',
+        label: 'REAL',
+        rawScore: 0.18,
+        confidence: 94,
+        modelVersion: 'AASIST-v2 / Hybrid Anti-Spoofing',
+        transcriptSnippet: 'Hello, can you hear me properly?',
+        fraudCategories: [],
+        suspiciousKeywords: [],
+        isFlaggedFake: false
+      },
+      {
+        id: 'seg-2',
+        index: 2,
+        startSec: 4,
+        endSec: 8,
+        timeRangeFormatted: '00:04–00:08',
+        label: 'UNCERTAIN',
+        rawScore: 0.48,
+        confidence: 76,
+        modelVersion: 'AASIST-v2 / Hybrid Anti-Spoofing',
+        transcriptSnippet: 'Main CEO bol raha hoon,',
+        fraudCategories: ['IDENTITY IMPERSONATION'],
+        suspiciousKeywords: ['Main CEO bol raha hoon'],
+        isFlaggedFake: false
+      },
+      {
+        id: 'seg-3',
+        index: 3,
+        startSec: 8,
+        endSec: 12,
+        timeRangeFormatted: '00:08–00:12',
+        label: 'FAKE',
+        rawScore: 0.94,
+        confidence: 96,
+        modelVersion: 'AASIST-v2 / Hybrid Anti-Spoofing',
+        transcriptSnippet: 'urgently ₹5 lakh transfer karo',
+        fraudCategories: ['URGENT TRANSFER', 'PAYMENT REQUEST'],
+        suspiciousKeywords: ['urgently ₹5 lakh transfer karo'],
+        isFlaggedFake: true
+      },
+      {
+        id: 'seg-4',
+        index: 4,
+        startSec: 12,
+        endSec: 16,
+        timeRangeFormatted: '00:12–00:16',
+        label: 'FAKE',
+        rawScore: 0.96,
+        confidence: 97,
+        modelVersion: 'AASIST-v2 / Hybrid Anti-Spoofing',
+        transcriptSnippet: 'hospital trust account mein. immediately transfer karo.',
+        fraudCategories: ['PAYMENT REQUEST'],
+        suspiciousKeywords: ['immediately transfer karo'],
+        isFlaggedFake: true
+      }
+    ]
+  },
+  {
+    caseId: 'VG-2026-002',
+    callStartTime: new Date(Date.now() - 1000 * 60 * 95).toISOString(),
+    callEndTime: new Date(Date.now() - 1000 * 60 * 91).toISOString(),
+    callDurationSec: 240,
+    callDurationFormatted: '04:00',
+    overallVoiceStatus: 'Suspicious',
+    totalAnalyzedSpeechDurationSec: 180,
+    flaggedFakeDurationSec: 115,
+    flaggedFakeDurationPercentage: 64, // 64% flagged fake duration
+    uncertainDurationSec: 25,
+    uncertainDurationPercentage: 14,
+    mostSuspiciousSegment: '00:24–00:36',
+    fakeSegmentsCount: 8,
+    realSegmentsCount: 4,
+    uncertainSegmentsCount: 2,
+    totalSegmentsCount: 14,
+    transcript: 'Central Cyber Crime Branch Inspector Vijay Rathore. Illegal parcel seized with drugs under your Aadhaar. Digital arrest warrant nikla hai, phone mat kaatna turant safe account mein penalty pay karo.',
+    highlightedTranscriptSentences: [
+      { text: 'Central Cyber Crime Branch Inspector Vijay Rathore. ', isSuspicious: true, category: 'IDENTITY IMPERSONATION' },
+      { text: 'Illegal parcel seized with drugs under your Aadhaar. ', isSuspicious: true, category: 'CONFIDENTIAL DATA REQUEST' },
+      { text: 'Digital arrest warrant nikla hai, phone mat kaatna ', isSuspicious: true, category: 'IDENTITY IMPERSONATION' },
+      { text: 'turant safe account mein penalty pay karo.', isSuspicious: true, category: 'PAYMENT REQUEST' }
+    ],
+    detectedFraudIntents: [
+      { category: 'IDENTITY IMPERSONATION', matchedPhrase: 'Inspector Vijay Rathore / digital arrest', severity: 'HIGH' },
+      { category: 'CONFIDENTIAL DATA REQUEST', matchedPhrase: 'Aadhaar details', severity: 'MEDIUM' },
+      { category: 'PAYMENT REQUEST', matchedPhrase: 'penalty pay karo', severity: 'HIGH' },
+      { category: 'BANK ACCOUNT CHANGE', matchedPhrase: 'safe account mein', severity: 'HIGH' }
+    ],
+    overallRisk: 'HIGH',
+    warningsGenerated: [
+      {
+        id: 'warn-2',
+        timeSec: 36,
+        timeFormatted: '00:36',
+        warningType: 'POSSIBLE AI-CLONED VOICE DETECTED',
+        riskLevel: 'HIGH',
+        triggerReason: 'Digital Arrest authority impersonation and synthetic pitch lock',
+        detectedIntent: 'IDENTITY IMPERSONATION'
+      }
+    ],
+    averageInferenceLatencyMs: 310,
+    modelName: 'AASIST-v2 / Hybrid Anti-Spoofing',
+    modelVersion: 'v2026.1-prod',
+    caseReviewStatus: 'Confirmed Deepfake',
+    reviewedBy: 'Inspector A. Verma (Cyber Cell)',
+    reviewedAt: new Date(Date.now() - 1000 * 60 * 70).toISOString(),
+    reviewerNotes: 'AASIST model confirmed severe vocoder cutoff above 7.2kHz. Coercive digital arrest scam detected. Fraud UPI frozen.',
+    callerMetadata: {
+      callerNumber: '+91 88392 XXXXX',
+      claimedIdentity: 'Fake CBI Officer',
+      channel: 'WhatsApp Cellular Spoof'
+    },
+    segments: [
+      {
+        id: 'seg-201',
+        index: 1,
+        startSec: 0,
+        endSec: 4,
+        timeRangeFormatted: '00:00–00:04',
+        label: 'REAL',
+        rawScore: 0.22,
+        confidence: 90,
+        modelVersion: 'AASIST-v2 / Hybrid Anti-Spoofing',
+        transcriptSnippet: 'Listening on line...',
+        isFlaggedFake: false
+      },
+      {
+        id: 'seg-202',
+        index: 2,
+        startSec: 4,
+        endSec: 8,
+        timeRangeFormatted: '00:04–00:08',
+        label: 'FAKE',
+        rawScore: 0.91,
+        confidence: 95,
+        modelVersion: 'AASIST-v2 / Hybrid Anti-Spoofing',
+        transcriptSnippet: 'Central Cyber Crime Branch Inspector Vijay Rathore.',
+        fraudCategories: ['IDENTITY IMPERSONATION'],
+        isFlaggedFake: true
+      }
+    ]
+  },
+  {
+    caseId: 'VG-2026-003',
+    callStartTime: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+    callEndTime: new Date(Date.now() - 1000 * 60 * 178).toISOString(),
+    callDurationSec: 90,
+    callDurationFormatted: '01:30',
+    overallVoiceStatus: 'Genuine',
+    totalAnalyzedSpeechDurationSec: 80,
+    flaggedFakeDurationSec: 0,
+    flaggedFakeDurationPercentage: 0, // 0% flagged fake
+    uncertainDurationSec: 5,
+    uncertainDurationPercentage: 6,
+    mostSuspiciousSegment: 'None',
+    fakeSegmentsCount: 0,
+    realSegmentsCount: 8,
+    uncertainSegmentsCount: 1,
+    totalSegmentsCount: 9,
+    transcript: 'Hey mom, just checking in. Leaving office now, picking up groceries. Will see you at dinner!',
+    highlightedTranscriptSentences: [
+      { text: 'Hey mom, just checking in. Leaving office now, picking up groceries. Will see you at dinner!', isSuspicious: false }
+    ],
+    detectedFraudIntents: [],
+    overallRisk: 'LOW',
+    warningsGenerated: [],
+    averageInferenceLatencyMs: 240,
+    modelName: 'AASIST-v2 / Hybrid Anti-Spoofing',
+    modelVersion: 'v2026.1-prod',
+    caseReviewStatus: 'Genuine',
+    reviewedBy: 'Authorized System Check',
+    reviewedAt: new Date(Date.now() - 1000 * 60 * 177).toISOString(),
+    reviewerNotes: 'Verified organic human pitch micro-tremors (jitter 2.1%, shimmer 3.8%). Natural glottal phonation verified.',
+    callerMetadata: {
+      callerNumber: '+91 97110 XXXXX',
+      claimedIdentity: 'Son Arjun Sharma',
+      channel: 'Mobile PSTN'
+    },
+    segments: [
+      {
+        id: 'seg-301',
+        index: 1,
+        startSec: 0,
+        endSec: 4,
+        timeRangeFormatted: '00:00–00:04',
+        label: 'REAL',
+        rawScore: 0.08,
+        confidence: 98,
+        modelVersion: 'AASIST-v2 / Hybrid Anti-Spoofing',
+        transcriptSnippet: 'Hey mom, just checking in.',
+        isFlaggedFake: false
+      }
+    ]
+  }
+];
 
 // In-memory persistent state (seeded with realistic SIH demonstration cases)
 let analysisLogs: AnalysisLogEntry[] = [
@@ -191,6 +444,57 @@ let photoHistory: PhotoForensicResult[] = [
   }
 ];
 
+let videoHistory: VideoForensicResult[] = [
+  {
+    id: 'vid-seed-01',
+    caseNumber: 'VID-948102',
+    timestamp: new Date(Date.now() - 1000 * 60 * 22).toISOString(),
+    filename: 'executive_authorization_deepfake.mp4',
+    videoDurationSec: 5.0,
+    fps: 30,
+    totalFramesAnalyzed: 150,
+    verdict: 'SUSPECTED_FACE_SWAP',
+    deepfakeProbability: 97.4,
+    realVideoProbability: 2.6,
+    confidence: 98,
+    estimatedGenerator: 'DeepFaceLab v2.4 (SAEHD Face-Swap)',
+    metrics: {
+      facialBorderBlendingScore: 94,
+      eyeBlinkPhysiologyScore: 88,
+      lipSyncAudioVisualScore: 72,
+      temporalFlickerScore: 91,
+      skinTextureSmoothingScore: 86
+    },
+    detectedAnomalies: [
+      {
+        category: 'FACIAL_BORDER',
+        title: 'Jawline Mask Boundary Seam Discontinuity',
+        description: 'Abrupt step-change in edge gradient and color temperature (ΔE = 8.4) between donor face mask and target neck skin.',
+        severity: 'CRITICAL',
+        timestampSec: 1.2,
+        frameIndex: 36,
+        location: 'Lower mandible & left cervical boundary'
+      },
+      {
+        category: 'BLINK_DYNAMICS',
+        title: 'Suppressed Biometric Blink Frequency',
+        description: 'Zero complete physiological eyelid closures detected across 5.0 seconds.',
+        severity: 'HIGH',
+        timestampSec: 2.4,
+        frameIndex: 72,
+        location: 'Bilateral ocular palpebral fissures'
+      }
+    ],
+    frameTimeline: [],
+    keyFindings: [
+      'Critical face-swap boundary seam detected around chin and jawline',
+      'Eyelid blinking completely suppressed during 5.0s recording'
+    ],
+    forensicSummary: 'Extensive facial replacement forensics confirm high-confidence DeepFaceLab identity spoofing.',
+    courtEvidenceDeclaration: 'Certified Digital Forensic Examination Report (ISO/IEC 27037). Evidence demonstrates synthetic facial replacement targeting executive impersonation.'
+  }
+];
+
 export const db = {
   getLogs: () => [...analysisLogs].reverse(),
   addLog: (entry: AnalysisLogEntry) => {
@@ -231,6 +535,24 @@ export const db = {
     photoHistory = [];
     return true;
   },
+  getVideoHistory: () => [...videoHistory],
+  addVideoHistory: (entry: VideoForensicResult) => {
+    const idx = videoHistory.findIndex(v => v.id === entry.id || v.caseNumber === entry.caseNumber);
+    if (idx !== -1) {
+      videoHistory[idx] = entry;
+    } else {
+      videoHistory.unshift(entry);
+      if (videoHistory.length > 100) videoHistory.pop();
+    }
+  },
+  deleteVideoHistory: (id: string) => {
+    videoHistory = videoHistory.filter(v => v.id !== id && v.caseNumber !== id);
+    return true;
+  },
+  clearVideoHistory: () => {
+    videoHistory = [];
+    return true;
+  },
   createChallenge: (phrase: string): ActiveLivenessChallenge => {
     const id = `ch-${Date.now()}`;
     const challenge: ActiveLivenessChallenge = {
@@ -252,5 +574,32 @@ export const db = {
       return updated;
     }
     return null;
+  },
+  getCallSummaries: () => [...callSummaries],
+  getCallSummaryById: (caseId: string) => callSummaries.find(c => c.caseId === caseId),
+  addCallSummary: (summary: CallSummaryData) => {
+    const existingIdx = callSummaries.findIndex(c => c.caseId === summary.caseId);
+    if (existingIdx !== -1) {
+      callSummaries[existingIdx] = summary;
+    } else {
+      callSummaries.unshift(summary);
+      if (callSummaries.length > 200) callSummaries.pop();
+    }
+    return summary;
+  },
+  updateCallCaseStatus: (caseId: string, status: any, notes?: string, reviewer?: string) => {
+    const target = callSummaries.find(c => c.caseId === caseId);
+    if (target) {
+      target.caseReviewStatus = status;
+      if (notes) target.reviewerNotes = notes;
+      if (reviewer) target.reviewedBy = reviewer;
+      target.reviewedAt = new Date().toISOString();
+      return target;
+    }
+    return null;
+  },
+  deleteCallSummary: (caseId: string) => {
+    callSummaries = callSummaries.filter(c => c.caseId !== caseId);
+    return true;
   }
 };
