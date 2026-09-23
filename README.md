@@ -17,6 +17,8 @@ We are a student innovation team working on **TruthNet AI**, an AI-powered platf
 
 **Smart India Hackathon (SIH) — Team TruthNet AI**
 
+<img width="943" height="576" alt="image" src="https://github.com/user-attachments/assets/3f94b9f7-fb5e-41e9-8c14-b1ef414cde84" />
+
 
 # 🛡️ TruthNet AI
 
