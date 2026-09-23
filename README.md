@@ -11,6 +11,8 @@
 | 👩‍💻 Team Member | **Bhumika**              |
 | 👩‍💻 Team Member | **Divya Panday**         |
 
+
+|||||>>>>>>>>   WORKING LINK  |||||||>>>>>> https://verishield-ai-1060276944532.asia-southeast1.run.app/ <<<<<<|||||
 ### 🚀 Team Mission
 
 We are a student innovation team working on **TruthNet AI**, an AI-powered platform focused on real-time detection of voice cloning, replay attacks, deepfakes, digital impersonation, and scam-related threats.
